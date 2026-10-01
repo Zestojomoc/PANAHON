@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, X, RefreshCw } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import CurrentWeather from './components/CurrentWeather';
+import WeatherSummary from './components/WeatherSummary';
 import WeatherDetails from './components/WeatherDetails';
 import HourlyForecast from './components/HourlyForecast';
 import DailyForecast from './components/DailyForecast';
@@ -193,7 +194,18 @@ export default function App() {
                 isFavorite={isCurrentSaved}
                 onToggleFavorite={handleToggleFavorite}
                 timezone={weatherData.timezone}
+                onViewSummary={() => {
+                  const el = document.getElementById('weather-summary-report');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
               />
+
+              {/* Weather Summary Report Card */}
+              <div id="weather-summary-report">
+                <WeatherSummary weather={weatherData} unit={unit} />
+              </div>
 
               {/* Weather Details & Metrics */}
               <WeatherDetails weather={weatherData} unit={unit} />

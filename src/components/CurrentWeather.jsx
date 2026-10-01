@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, MapPin, ArrowUp, ArrowDown, Clock } from 'lucide-react';
+import { Star, MapPin, ArrowUp, ArrowDown, Clock, Sparkles } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
 import { getWeatherInfo } from '../utils/weatherCodes';
 import { formatTemperature } from '../utils/temperature';
@@ -12,6 +12,7 @@ export default function CurrentWeather({
   isFavorite,
   onToggleFavorite,
   timezone,
+  onViewSummary,
 }) {
   if (!weather || !weather.current) return null;
 
@@ -44,25 +45,41 @@ export default function CurrentWeather({
           </div>
         </div>
 
-        {/* Favorite / Bookmark Toggle Button */}
-        <button
-          type="button"
-          onClick={onToggleFavorite}
-          aria-label={isFavorite ? 'Remove from saved locations' : 'Save location'}
-          aria-pressed={isFavorite}
-          className={`p-3 rounded-2xl border transition-all active:scale-95 group ${
-            isFavorite
-              ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-lg shadow-amber-500/20'
-              : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
-          }`}
-          title={isFavorite ? 'Saved to favorites' : 'Save location'}
-        >
-          <Star
-            className={`w-5 h-5 transition-transform group-hover:scale-110 ${
-              isFavorite ? 'fill-amber-400 text-amber-400' : ''
+        {/* Action Buttons: Summary Shortcut & Favorite */}
+        <div className="flex items-center gap-2 shrink-0">
+          {onViewSummary && (
+            <button
+              type="button"
+              onClick={onViewSummary}
+              aria-label="View weather summary report"
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-2xl border bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white transition-all active:scale-95 group text-xs font-semibold"
+              title="Jump to weather summary report"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
+              <span className="hidden sm:inline">Summary</span>
+            </button>
+          )}
+
+          {/* Favorite / Bookmark Toggle Button */}
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            aria-label={isFavorite ? 'Remove from saved locations' : 'Save location'}
+            aria-pressed={isFavorite}
+            className={`p-3 rounded-2xl border transition-all active:scale-95 group ${
+              isFavorite
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-lg shadow-amber-500/20'
+                : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
             }`}
-          />
-        </button>
+            title={isFavorite ? 'Saved to favorites' : 'Save location'}
+          >
+            <Star
+              className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                isFavorite ? 'fill-amber-400 text-amber-400' : ''
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Hero Temperature & Condition Display */}

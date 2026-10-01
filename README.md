@@ -8,6 +8,7 @@
 ## ✨ Features
 
 - **Real-Time Current Weather**: Live temperature, feels-like, WMO weather condition descriptions, and today's high/low ranges.
+- **AI Weather Summary & Daily Briefing**: Intelligent natural language weather report synthesizing temperature trends, rain likelihood, outdoor activity suitability score (0-100), outfit/gear advice, 4-phase day breakdown, audio speech readout (Text-to-Speech), and one-click copy to clipboard.
 - **24-Hour Forecast Timeline**: Next 24 hours of forecast with day/night awareness, rain chance percentages, and horizontal scrolling.
 - **7-Day Forecast**: Multi-day forecast cards featuring dynamic min/max temperature range bars.
 - **Detailed Weather Metrics**:
