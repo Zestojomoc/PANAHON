@@ -133,23 +133,23 @@ export default function WeatherSummary({ weather, unit }) {
       <div className="absolute -top-24 -right-24 w-80 h-80 bg-gradient-to-br from-sky-500/10 via-indigo-500/10 to-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-white/10">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-amber-400 p-[1.5px] shadow-lg shadow-sky-500/20 shrink-0">
             <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
             </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h3 className="text-base sm:text-xl font-bold tracking-tight text-white leading-tight">
                 Weather Summary Report
               </h3>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+              <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
                 AI Briefing
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-1 sm:mt-0.5 leading-snug">
               Intelligent daily digest and actionable guidance for {summary.locationName}
             </p>
           </div>
