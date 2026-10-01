@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -28,65 +28,161 @@ export default function WeatherSummary({ weather, unit }) {
   const [copied, setCopied] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  // References to prevent garbage collection and manage speech heartbeat on mobile/Vercel
+  const activeUtteranceRef = useRef(null);
+  const heartbeatIntervalRef = useRef(null);
+
   // Generate structured summary from current weather data
   const summary = useMemo(() => {
     if (!weather) return null;
     return generateWeatherSummary(weather, unit);
   }, [weather, unit]);
 
-  // Clean up any ongoing speech synthesis on unmount or location change
-  useEffect(() => {
-    return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [weather]);
-
-  // Stop speaking if speech ends naturally
-  const handleSpeechEnd = useCallback(() => {
+  // Cleanly stop any ongoing speech synthesis and release resources
+  const stopSpeech = useCallback(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+    activeUtteranceRef.current = null;
+    if (typeof window !== 'undefined') {
+      window._panahon_active_utterance = null;
+    }
     setIsSpeaking(false);
   }, []);
 
-  // Text-to-speech toggle
+  // Clean up on component unmount or weather data change
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, [weather, stopSpeech]);
+
+  // Handle mobile voices pre-warming
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Trigger voices load on mount
+    window.speechSynthesis.getVoices();
+    const onVoicesChanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+    window.speechSynthesis.onvoiceschanged = onVoicesChanged;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
+  // Robust Text-to-speech engine compatible with mobile browsers & production deployments
   const toggleSpeech = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      alert('Text-to-speech is not supported in this browser.');
+      alert('Text-to-speech is not supported on this browser or device.');
       return;
     }
 
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+      stopSpeech();
       return;
     }
 
     if (!summary) return;
 
+    // Cancel any stuck previous synthesis
     window.speechSynthesis.cancel();
 
-    // Construct full spoken narrative
-    const speechText = `${summary.headline}. ${summary.fullReportText} Outdoor suitability is rated as ${summary.outdoorRating.status}, with an index of ${summary.outdoorRating.score} out of 100. ${summary.weeklySummaryText}`;
-
-    const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-
-    // Pick a natural voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(
-      (v) => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Ava'))
-    ) || voices.find((v) => v.lang.startsWith('en'));
-
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+    // If synthesis is paused or stalled, resume it
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
     }
 
-    utterance.onend = handleSpeechEnd;
-    utterance.onerror = () => setIsSpeaking(false);
+    // Split speech into concise sentences to avoid the 15-second browser cutoff limit
+    const fullText = `${summary.headline}. ${summary.fullReportText} Outdoor suitability is rated as ${summary.outdoorRating.status}, with an index of ${summary.outdoorRating.score} out of 100.`;
 
+    const sentences = fullText
+      .split(/(?<=[.?!])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    if (sentences.length === 0) return;
+
+    let sentenceIndex = 0;
     setIsSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+
+    const speakNextSentence = (index) => {
+      if (index >= sentences.length) {
+        stopSpeech();
+        return;
+      }
+
+      const sentence = sentences[index];
+      const utterance = new SpeechSynthesisUtterance(sentence);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      // Select natural English voice if available
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const preferredVoice =
+          voices.find(
+            (v) =>
+              v.lang.startsWith('en') &&
+              (v.name.includes('Natural') ||
+                v.name.includes('Google') ||
+                v.name.includes('Samantha') ||
+                v.name.includes('Ava') ||
+                v.name.includes('Daniel') ||
+                v.name.includes('Karen'))
+          ) || voices.find((v) => v.lang.startsWith('en'));
+
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+      }
+
+      // CRITICAL FOR MOBILE & CHROMIUM: Store persistent reference to prevent GC mid-speech
+      activeUtteranceRef.current = utterance;
+      if (typeof window !== 'undefined') {
+        window._panahon_active_utterance = utterance;
+      }
+
+      utterance.onend = () => {
+        sentenceIndex++;
+        speakNextSentence(sentenceIndex);
+      };
+
+      utterance.onerror = (e) => {
+        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+          console.warn('[PANAHON TTS] Speech error:', e.error);
+        }
+        stopSpeech();
+      };
+
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error('[PANAHON TTS] Failed to execute speak:', err);
+        stopSpeech();
+      }
+    };
+
+    // Mobile WebKit / Chromium heartbeat: unpause speech if browser stalls
+    if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
+    heartbeatIntervalRef.current = setInterval(() => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      }
+    }, 4000);
+
+    // Speak initial sentence immediately inside the user touch/click gesture
+    speakNextSentence(0);
   };
 
   // Copy structured report to clipboard
