@@ -1,5 +1,5 @@
 /**
- * Date and time formatting helpers for PANAHON
+ * Date and time formatting helpers for KLIMA
  */
 
 /**

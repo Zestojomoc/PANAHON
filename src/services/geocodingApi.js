@@ -1,5 +1,5 @@
 /**
- * Geocoding service for PANAHON
+ * Geocoding service for KLIMA
  * Primary: Open-Meteo Geocoding Search API
  * Reverse: BigDataCloud Client Reverse Geocode (free, public, no key)
  */
@@ -45,7 +45,7 @@ export async function searchLocations(query, count = 8) {
       formattedLabel: [item.name, item.admin1, item.country].filter(Boolean).join(', '),
     }));
   } catch (error) {
-    console.error('[PANAHON Geocoding] Search failed:', error);
+    console.error('[KLIMA Geocoding] Search failed:', error);
     throw error;
   }
 }

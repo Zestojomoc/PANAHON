@@ -1,5 +1,5 @@
 /**
- * Open-Meteo WMO Weather Code Interpreter for PANAHON
+ * Open-Meteo WMO Weather Code Interpreter for KLIMA
  * Provides centralized weather mappings, descriptions, iconography, and visual themes.
  */
 

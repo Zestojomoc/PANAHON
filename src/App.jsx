@@ -23,6 +23,7 @@ import {
   setLastLocation,
   getStoredUnit,
   setStoredUnit,
+  STORAGE_KEYS,
 } from './utils/storage';
 
 export default function App() {
@@ -33,7 +34,7 @@ export default function App() {
   const [unit, setUnit] = useState(() => getStoredUnit());
 
   // Saved favorite locations
-  const [savedLocations, setSavedLocations] = useLocalStorage('panahon_saved_locations', []);
+  const [savedLocations, setSavedLocations] = useLocalStorage(STORAGE_KEYS.SAVED_LOCATIONS, []);
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
 
   // Weather data hook for the active location

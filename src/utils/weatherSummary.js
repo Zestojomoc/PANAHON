@@ -30,9 +30,9 @@ function formatHour12(hourNum) {
 
 /**
  * Generate comprehensive, human-like weather summary and actionable insights
- * from the normalized PANAHON weather object.
+ * from the normalized KLIMA weather object.
  *
- * @param {Object} weather - Normalized PANAHON weather data
+ * @param {Object} weather - Normalized KLIMA weather data
  * @param {'C' | 'F'} unit - Temperature unit ('C' or 'F')
  * @returns {Object} Structured summary report data
  */

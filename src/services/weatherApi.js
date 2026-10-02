@@ -1,5 +1,5 @@
 /**
- * Open-Meteo Forecast API Service for PANAHON
+ * Open-Meteo Forecast API Service for KLIMA
  * Implements the exact Open-Meteo contract and transforms responses
  * into the normalized internal weather model.
  */
@@ -101,7 +101,7 @@ export async function getWeatherData(location, unit = 'C') {
     const rawData = await response.json();
     return transformWeatherResponse(rawData, location);
   } catch (error) {
-    console.error('[PANAHON Weather API] Request failed:', error);
+    console.error('[KLIMA Weather API] Request failed:', error);
     throw error;
   }
 }
@@ -119,7 +119,7 @@ export function getWindDirection(deg) {
 }
 
 /**
- * Internal transformation function creating the normalized PANAHON weather model.
+ * Internal transformation function creating the normalized KLIMA weather model.
  * Presentation components consume this normalized model and never touch raw API keys.
  * 
  * @param {Object} raw - Raw payload from Open-Meteo
@@ -212,7 +212,7 @@ export function transformWeatherResponse(raw, location) {
     todaySunset: daily.sunset?.[0],
   };
 
-  // Normalized PANAHON weather internal model
+  // Normalized KLIMA weather internal model
   return {
     location: {
       name: location.name || 'Current Location',

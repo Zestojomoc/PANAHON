@@ -1,12 +1,18 @@
 /**
- * Safe localStorage wrapper and persistence utility for PANAHON
+ * Safe localStorage wrapper and persistence utility for KLIMA
  * Gracefully degrades if localStorage is disabled, full, or blocked.
  */
 
-const STORAGE_KEYS = {
-  UNIT: 'panahon_temp_unit',
-  SAVED_LOCATIONS: 'panahon_saved_locations',
-  LAST_LOCATION: 'panahon_last_location',
+export const STORAGE_KEYS = {
+  UNIT: 'klima_temp_unit',
+  SAVED_LOCATIONS: 'klima_saved_locations',
+  LAST_LOCATION: 'klima_last_location',
+};
+
+const LEGACY_STORAGE_KEYS = {
+  [STORAGE_KEYS.UNIT]: 'panahon_temp_unit',
+  [STORAGE_KEYS.SAVED_LOCATIONS]: 'panahon_saved_locations',
+  [STORAGE_KEYS.LAST_LOCATION]: 'panahon_last_location',
 };
 
 // Default featured locations to suggest if user has no saved locations
@@ -24,11 +30,15 @@ export const DEFAULT_LOCATION = DEFAULT_SUGGESTED_LOCATIONS[0]; // Manila
 export function safeGet(key, fallback = null) {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return fallback;
-    const item = window.localStorage.getItem(key);
+    let item = window.localStorage.getItem(key);
+    // Backward-compatibility: fallback to previous panahon key if not yet saved under klima
+    if (item === null && LEGACY_STORAGE_KEYS[key]) {
+      item = window.localStorage.getItem(LEGACY_STORAGE_KEYS[key]);
+    }
     if (item === null) return fallback;
     return JSON.parse(item);
   } catch (error) {
-    console.warn(`[PANAHON Storage] Failed reading key "${key}":`, error);
+    console.warn(`[KLIMA Storage] Failed reading key "${key}":`, error);
     return fallback;
   }
 }
@@ -39,7 +49,7 @@ export function safeSet(key, value) {
     window.localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
-    console.warn(`[PANAHON Storage] Failed writing key "${key}":`, error);
+    console.warn(`[KLIMA Storage] Failed writing key "${key}":`, error);
     return false;
   }
 }

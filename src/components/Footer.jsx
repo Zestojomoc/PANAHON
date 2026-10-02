@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="w-full py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/5 mt-16 text-center text-xs text-slate-500">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-slate-400">PANAHON</span>
+          <span className="font-semibold text-slate-400">KLIMA</span>
           <span>—</span>
           <span>Weather, at a glance.</span>
         </div>

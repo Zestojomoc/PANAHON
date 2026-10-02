@@ -36,7 +36,7 @@ export function useWeather(location, unit = 'C') {
       }
     } catch (err) {
       if (currentReq === activeRequestId.current) {
-        console.error('[PANAHON useWeather] Fetch error:', err);
+        console.error('[KLIMA useWeather] Fetch error:', err);
         setError(
           navigator.onLine === false
             ? 'You appear to be offline. Please check your internet connection.'

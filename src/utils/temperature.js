@@ -1,5 +1,5 @@
 /**
- * Temperature and formatting utilities for PANAHON.
+ * Temperature and formatting utilities for KLIMA.
  * Temperatures are provided directly by Open-Meteo in the requested unit
  * ('celsius' or 'fahrenheit') without manual mathematical conversion.
  */
