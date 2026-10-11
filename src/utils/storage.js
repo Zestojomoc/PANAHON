@@ -1,12 +1,15 @@
 /**
  * Safe localStorage wrapper and persistence utility for KLIMA
  * Gracefully degrades if localStorage is disabled, full, or blocked.
+ * Includes Stale-While-Revalidate caching for 0ms instant startup.
  */
 
 export const STORAGE_KEYS = {
   UNIT: 'klima_temp_unit',
   SAVED_LOCATIONS: 'klima_saved_locations',
   LAST_LOCATION: 'klima_last_location',
+  WEATHER_CACHE_PREFIX: 'klima_weather_cache_',
+  LATEST_WEATHER: 'klima_latest_weather',
 };
 
 const LEGACY_STORAGE_KEYS = {
@@ -14,6 +17,9 @@ const LEGACY_STORAGE_KEYS = {
   [STORAGE_KEYS.SAVED_LOCATIONS]: 'panahon_saved_locations',
   [STORAGE_KEYS.LAST_LOCATION]: 'panahon_last_location',
 };
+
+// 10 minutes cache freshness window for meteorological data
+export const CACHE_FRESH_TTL_MS = 10 * 60 * 1000;
 
 // Default featured locations to suggest if user has no saved locations
 export const DEFAULT_SUGGESTED_LOCATIONS = [
@@ -82,4 +88,67 @@ export function getLastLocation() {
 
 export function setLastLocation(location) {
   return safeSet(STORAGE_KEYS.LAST_LOCATION, location);
+}
+
+/**
+ * Creates unique cache key for a location and temperature unit
+ */
+export function getWeatherCacheKey(location, unit = 'C') {
+  if (!location || location.latitude === undefined || location.longitude === undefined) {
+    return null;
+  }
+  const lat = Number(location.latitude).toFixed(3);
+  const lon = Number(location.longitude).toFixed(3);
+  return `${STORAGE_KEYS.WEATHER_CACHE_PREFIX}${lat}_${lon}_${unit}`;
+}
+
+/**
+ * Retrieves cached weather object for instant initial render (Stale-While-Revalidate)
+ * Returns { data, timestamp, isFresh } or null
+ */
+export function getCachedWeather(location, unit = 'C') {
+  const key = getWeatherCacheKey(location, unit);
+  if (!key) return null;
+
+  const entry = safeGet(key, null);
+  if (entry && entry.data) {
+    const isFresh = Date.now() - (entry.timestamp || 0) < CACHE_FRESH_TTL_MS;
+    return {
+      data: entry.data,
+      timestamp: entry.timestamp,
+      isFresh,
+    };
+  }
+
+  // Fallback to global latest weather if it matches coordinates
+  const globalLatest = safeGet(STORAGE_KEYS.LATEST_WEATHER, null);
+  if (globalLatest && globalLatest.data) {
+    const latMatch = Math.abs(globalLatest.data.location?.latitude - location.latitude) < 0.05;
+    const lonMatch = Math.abs(globalLatest.data.location?.longitude - location.longitude) < 0.05;
+    if (latMatch && lonMatch) {
+      return {
+        data: globalLatest.data,
+        timestamp: globalLatest.timestamp,
+        isFresh: Date.now() - (globalLatest.timestamp || 0) < CACHE_FRESH_TTL_MS,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Saves fetched weather data to local cache for instant subsequent startup
+ */
+export function setCachedWeather(location, unit = 'C', data) {
+  const key = getWeatherCacheKey(location, unit);
+  if (!key || !data) return;
+
+  const payload = {
+    timestamp: Date.now(),
+    data,
+  };
+
+  safeSet(key, payload);
+  safeSet(STORAGE_KEYS.LATEST_WEATHER, payload);
 }

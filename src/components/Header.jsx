@@ -6,6 +6,7 @@ export default function Header({
   onToggleUnit,
   onUseLocation,
   isLocating,
+  isRefreshing = false,
   savedCount = 0,
   onOpenSavedLocations,
   isSavedDrawerOpen,
@@ -28,6 +29,12 @@ export default function Header({
               <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
                 PH
               </span>
+              {isRefreshing && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>Syncing</span>
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
               Weather, at a glance.

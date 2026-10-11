@@ -62,7 +62,12 @@ export default function DailyForecast({ daily = [], unit }) {
 
               {/* Weather Condition & Icon */}
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <WeatherIcon code={day.weatherCode} isDay={1} size={24} />
+                <WeatherIcon
+                  condition={weatherInfo.label}
+                  code={day.weatherCode}
+                  isDay={1}
+                  size={26}
+                />
                 <span className="text-xs sm:text-sm text-slate-300 truncate hidden md:inline">
                   {weatherInfo.label}
                 </span>

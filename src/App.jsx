@@ -38,7 +38,7 @@ export default function App() {
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
 
   // Weather data hook for the active location
-  const { weatherData, isLoading, error, refetch } = useWeather(currentLocation, unit);
+  const { weatherData, isLoading, isRefreshing, error, refetch } = useWeather(currentLocation, unit);
 
   // Geolocation hook for "Use my location"
   const { getCurrentLocation, isLocating, locationError, clearLocationError } = useLocation();
@@ -131,6 +131,7 @@ export default function App() {
           onToggleUnit={handleToggleUnit}
           onUseLocation={handleUseLocation}
           isLocating={isLocating}
+          isRefreshing={isRefreshing}
           savedCount={savedLocations.length}
           onOpenSavedLocations={() => setIsSavedDrawerOpen(true)}
           isSavedDrawerOpen={isSavedDrawerOpen}

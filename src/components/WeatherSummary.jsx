@@ -429,7 +429,12 @@ export default function WeatherSummary({ weather, unit }) {
                         </div>
 
                         <div className="flex items-center gap-2.5 my-1.5">
-                          <WeatherIcon code={seg.weatherCode} isDay={seg.isDay ? 1 : 0} size={28} />
+                          <WeatherIcon
+                            condition={seg.condition}
+                            code={seg.weatherCode}
+                            isDay={seg.isDay ? 1 : 0}
+                            size={28}
+                          />
                           <div>
                             <div className="text-lg font-bold text-white leading-tight">
                               {formatTemperature(seg.temp, unit)}

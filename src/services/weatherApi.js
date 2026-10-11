@@ -42,6 +42,7 @@ const HOURLY_FIELDS = [
   'wind_direction_10m',
   'uv_index',
   'visibility',
+  'is_day',
 ].join(',');
 
 /**
@@ -65,6 +66,11 @@ const DAILY_FIELDS = [
   'uv_index_max',
 ].join(',');
 
+// In-flight deduplication & in-memory cache to eliminate duplicate network round-trips
+const inFlightRequests = new Map();
+const memoryCache = new Map();
+const MEMORY_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+
 /**
  * Fetch weather forecast adhering strictly to the contract
  * @param {Object} location - Location object with latitude, longitude, name, etc.
@@ -77,6 +83,13 @@ export async function getWeatherData(location, unit = 'C') {
   }
 
   const temperatureUnitParam = unit === 'F' ? 'fahrenheit' : 'celsius';
+  const memKey = `${Number(location.latitude).toFixed(3)}_${Number(location.longitude).toFixed(3)}_${unit}`;
+
+  // 1. Instant in-memory cache check
+  const cachedMem = memoryCache.get(memKey);
+  if (cachedMem && Date.now() - cachedMem.timestamp < MEMORY_CACHE_TTL) {
+    return cachedMem.data;
+  }
 
   const params = new URLSearchParams({
     latitude: location.latitude.toString(),
@@ -93,17 +106,37 @@ export async function getWeatherData(location, unit = 'C') {
 
   const url = `${BASE_URL}?${params.toString()}`;
 
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Weather service responded with status ${response.status}`);
-    }
-    const rawData = await response.json();
-    return transformWeatherResponse(rawData, location);
-  } catch (error) {
-    console.error('[KLIMA Weather API] Request failed:', error);
-    throw error;
+  // 2. In-flight request deduplication: return existing promise if identical request is pending
+  if (inFlightRequests.has(url)) {
+    return inFlightRequests.get(url);
   }
+
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Weather service responded with status ${response.status}`);
+      }
+      const rawData = await response.json();
+      const transformed = transformWeatherResponse(rawData, location);
+
+      // Save to memory cache
+      memoryCache.set(memKey, {
+        timestamp: Date.now(),
+        data: transformed,
+      });
+
+      return transformed;
+    } catch (error) {
+      console.error('[KLIMA Weather API] Request failed:', error);
+      throw error;
+    } finally {
+      inFlightRequests.delete(url);
+    }
+  })();
+
+  inFlightRequests.set(url, fetchPromise);
+  return fetchPromise;
 }
 
 /**
@@ -156,6 +189,10 @@ export function transformWeatherResponse(raw, location) {
         windDirection: hourly.wind_direction_10m?.[i] ?? 0,
         uvIndex: hourly.uv_index?.[i] ?? 0,
         visibility: hourly.visibility?.[i] ?? 10000,
+        isDay:
+          hourly.is_day?.[i] !== undefined
+            ? hourly.is_day[i]
+            : (new Date(hourly.time[i]).getHours() >= 6 && new Date(hourly.time[i]).getHours() < 18 ? 1 : 0),
         isNow: i === startIndex,
       });
     }

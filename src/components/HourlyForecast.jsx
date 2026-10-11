@@ -3,6 +3,7 @@ import { Clock, Droplets, ChevronLeft, ChevronRight } from 'lucide-react';
 import WeatherIcon from './WeatherIcon';
 import { formatTemperature } from '../utils/temperature';
 import { formatHour } from '../utils/dateTime';
+import { getWeatherInfo } from '../utils/weatherCodes';
 
 export default function HourlyForecast({ hourly = [], unit }) {
   const scrollContainerRef = useRef(null);
@@ -59,6 +60,13 @@ export default function HourlyForecast({ hourly = [], unit }) {
           const isNow = index === 0 || item.isNow;
           const timeLabel = formatHour(item.time, isNow);
           const hasRainProb = item.precipitationProbability !== undefined && item.precipitationProbability > 0;
+          const itemIsDay =
+            item.isDay !== undefined
+              ? item.isDay
+              : new Date(item.time).getHours() >= 6 && new Date(item.time).getHours() < 18
+              ? 1
+              : 0;
+          const weatherInfo = getWeatherInfo(item.weatherCode, itemIsDay);
 
           return (
             <div
@@ -77,10 +85,11 @@ export default function HourlyForecast({ hourly = [], unit }) {
               {/* Weather Icon */}
               <div className="my-2.5">
                 <WeatherIcon
+                  condition={weatherInfo.label}
                   code={item.weatherCode}
-                  isDay={item.isDay}
-                  size={26}
-                  animate={isNow}
+                  isDay={itemIsDay}
+                  size={28}
+                  animate={true}
                 />
               </div>
 

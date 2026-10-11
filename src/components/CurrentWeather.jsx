@@ -106,9 +106,10 @@ export default function CurrentWeather({
         <div className="flex items-center md:flex-col md:items-end gap-4 md:gap-2">
           <div className="flex items-center gap-3">
             <WeatherIcon
+              condition={weatherInfo.label}
               code={current.weatherCode}
               isDay={current.isDay}
-              size={48}
+              size={52}
               className="drop-shadow-lg"
             />
             <div className="md:text-right">
